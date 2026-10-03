@@ -3,6 +3,7 @@ import { measureBoundingBox } from '@jscad/modeling/src/measurements';
 import { DEFAULT_PARAMS, cloneParams, type PCBMount } from '../params';
 import {
   calculateMountFilletSize,
+  expandPcbMount,
   pcbMount,
   pcbMounts,
   pcbMountsOnBase,
@@ -206,6 +207,76 @@ describe('pcbmount', () => {
 
       const combined = pcbMounts(params);
       expect(combined).not.toBeNull();
+    });
+  });
+
+  describe('expandPcbMount', () => {
+    const sortPoints = (mounts: PCBMount[]) =>
+      mounts
+        .map((m) => [Math.round(m.x * 1000) / 1000 + 0, Math.round(m.y * 1000) / 1000 + 0])
+        .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+
+    it('returns a single mount unchanged when no pattern is set', () => {
+      expect(expandPcbMount(baseMountParams)).toEqual([baseMountParams]);
+    });
+
+    it('expands a pair into two mounts the hole distance apart', () => {
+      const mounts = expandPcbMount({
+        ...baseMountParams,
+        x: 5,
+        y: 2,
+        pattern: 'pair',
+        spacingX: 40,
+      });
+      expect(sortPoints(mounts)).toEqual([
+        [-15, 2],
+        [25, 2],
+      ]);
+    });
+
+    it('expands a rectangle into four mounts centred on x/y', () => {
+      const mounts = expandPcbMount({
+        ...baseMountParams,
+        x: 10,
+        y: -5,
+        pattern: 'rectangle',
+        spacingX: 40,
+        spacingY: 30,
+      });
+      expect(mounts.length).toBe(4);
+      expect(sortPoints(mounts)).toEqual([
+        [-10, -20],
+        [-10, 10],
+        [30, -20],
+        [30, 10],
+      ]);
+      mounts.forEach((m) => {
+        expect(m.height).toBe(baseMountParams.height);
+        expect(m.pattern).toBe('single');
+      });
+    });
+
+    it('rotates the pattern about its centre while preserving spacing', () => {
+      const mounts = expandPcbMount({
+        ...baseMountParams,
+        pattern: 'pair',
+        spacingX: 40,
+        rotation: 90,
+      });
+      expect(sortPoints(mounts)).toEqual([
+        [0, -20],
+        [0, 20],
+      ]);
+    });
+
+    it('builds base geometry spanning the rectangle pattern', () => {
+      const params = cloneParams(DEFAULT_PARAMS);
+      params.pcbMountFilletStyle = 'none';
+      params.pcbMounts = [{ ...baseMountParams, pattern: 'rectangle', spacingX: 40, spacingY: 30 }];
+      const bbox = measureBoundingBox(pcbMountsOnBase(params)!);
+      // Outer diameter 6 => footprint spans spacing + 6 in each axis
+      expect(bbox[1][0] - bbox[0][0]).toBeCloseTo(46, 1);
+      expect(bbox[1][1] - bbox[0][1]).toBeCloseTo(36, 1);
     });
   });
 });

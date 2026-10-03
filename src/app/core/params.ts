@@ -12,10 +12,24 @@ export type Hole = {
 
 export type PcbMountFilletStyle = 'none' | 'round' | 'chamfer';
 
+/**
+ * Hole pattern a mount entry produces. `single` is one standoff at (x, y);
+ * `pair` and `rectangle` place a locked group of standoffs centred on (x, y),
+ * spaced by the centre-to-centre hole distances of the board being mounted.
+ */
+export type PcbMountPattern = 'single' | 'pair' | 'rectangle';
+
 export type PCBMount = {
   surface: Surface;
   x: number;
   y: number;
+  pattern?: PcbMountPattern;
+  /** Hole spacing along the pattern's X axis (pair distance, or rectangle width). */
+  spacingX?: number;
+  /** Hole spacing along the pattern's Y axis (rectangle only). */
+  spacingY?: number;
+  /** Rotation of the whole pattern in degrees, about its centre. */
+  rotation?: number;
   height: number;
   outerDiameter: number;
   screwDiameter: number;
@@ -157,32 +171,12 @@ export const DEFAULT_PARAMS: Params = {
   pcbMounts: [
     {
       surface: 'bottom',
-      x: 30,
-      y: 24,
-      height: 5,
-      outerDiameter: 6,
-      screwDiameter: 2,
-    },
-    {
-      surface: 'bottom',
-      x: -30,
-      y: 24,
-      height: 5,
-      outerDiameter: 6,
-      screwDiameter: 2,
-    },
-    {
-      surface: 'bottom',
-      x: -30,
-      y: -24,
-      height: 5,
-      outerDiameter: 6,
-      screwDiameter: 2,
-    },
-    {
-      surface: 'bottom',
-      x: 30,
-      y: -24,
+      x: 0,
+      y: 0,
+      pattern: 'rectangle',
+      spacingX: 60,
+      spacingY: 48,
+      rotation: 0,
       height: 5,
       outerDiameter: 6,
       screwDiameter: 2,

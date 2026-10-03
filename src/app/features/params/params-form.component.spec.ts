@@ -67,6 +67,25 @@ describe('ParamsFormComponent', () => {
     expect(state.params().pcbMounts.length).toBe(initialCount);
   });
 
+  it('adds pcb mount hole patterns with default spacing', () => {
+    const initialCount = state.params().pcbMounts.length;
+
+    component.addPcbMount('pair');
+    expect(state.params().pcbMounts[initialCount].pattern).toBe('pair');
+    expect(state.params().pcbMounts[initialCount].spacingX).toBe(40);
+
+    component.addPcbMount('rectangle');
+    const rect = state.params().pcbMounts[initialCount + 1];
+    expect(rect.pattern).toBe('rectangle');
+    expect(rect.spacingX).toBe(40);
+    expect(rect.spacingY).toBe(30);
+
+    component.setPcbMountPattern(initialCount, 'rectangle');
+    expect(state.params().pcbMounts[initialCount].pattern).toBe('rectangle');
+    expect(state.params().pcbMounts[initialCount].spacingX).toBe(40);
+    expect(state.params().pcbMounts[initialCount].spacingY).toBe(30);
+  });
+
   it('applies waterproof and lid screw coupling rules', () => {
     component.onWaterproofChange(false);
     expect(state.params().waterProof).toBeFalse();
