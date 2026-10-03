@@ -1,8 +1,8 @@
 {
   "name": "easy-enclosure",
-  "version": "1.4.9",
+  "version": "1.5.0",
   "private": true,
-  "homepage": "https://bruceborrett.github.io/easy-enclosure/",
+  "homepage": "https://darkhand81.github.io/easy-enclosure/",
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
