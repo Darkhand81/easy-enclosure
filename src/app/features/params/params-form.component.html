@@ -262,7 +262,7 @@
         <div class="sub-params">
           <button class="remove-btn" type="button" (click)="removePcbMount($index)">X</button>
           <p>
-            <b>Mount {{ $index + 1 }}</b>
+            <b>Mount {{ $index + 1 }}</b> &middot; {{ pcbMountPatternLabel(mount.pattern) }}
           </p>
 
           <div class="input-group">
@@ -279,7 +279,23 @@
             </select>
           </div>
           <div class="input-group">
-            <label>X</label>
+            <label>Pattern</label>
+            <select
+              [value]="mount.pattern || 'single'"
+              (change)="setPcbMountPattern($index, $any($event.target).value)"
+            >
+              @for (option of pcbMountPatterns; track option.value) {
+                <option
+                  [value]="option.value"
+                  [selected]="option.value === (mount.pattern || 'single')"
+                >
+                  {{ option.label }}
+                </option>
+              }
+            </select>
+          </div>
+          <div class="input-group">
+            <label>{{ (mount.pattern || 'single') === 'single' ? 'X' : 'Center X' }}</label>
             <input
               type="number"
               [value]="mount.x"
@@ -288,7 +304,7 @@
             />
           </div>
           <div class="input-group">
-            <label>Y</label>
+            <label>{{ (mount.pattern || 'single') === 'single' ? 'Y' : 'Center Y' }}</label>
             <input
               type="number"
               [value]="mount.y"
@@ -296,6 +312,52 @@
               (blur)="updatePcbMount($index, { y: +$any($event.target).value })"
             />
           </div>
+          @if (mount.pattern === 'pair') {
+            <div class="input-group">
+              <label>Hole Distance</label>
+              <input
+                type="number"
+                min="0"
+                [value]="mount.spacingX ?? 0"
+                (keydown.enter)="$any($event.target).blur()"
+                (blur)="updatePcbMount($index, { spacingX: +$any($event.target).value })"
+              />
+            </div>
+          }
+          @if (mount.pattern === 'rectangle') {
+            <div class="input-group">
+              <label>Hole Spacing X</label>
+              <input
+                type="number"
+                min="0"
+                [value]="mount.spacingX ?? 0"
+                (keydown.enter)="$any($event.target).blur()"
+                (blur)="updatePcbMount($index, { spacingX: +$any($event.target).value })"
+              />
+            </div>
+            <div class="input-group">
+              <label>Hole Spacing Y</label>
+              <input
+                type="number"
+                min="0"
+                [value]="mount.spacingY ?? 0"
+                (keydown.enter)="$any($event.target).blur()"
+                (blur)="updatePcbMount($index, { spacingY: +$any($event.target).value })"
+              />
+            </div>
+          }
+          @if (mount.pattern === 'pair' || mount.pattern === 'rectangle') {
+            <div class="input-group">
+              <label>Rotation</label>
+              <input
+                type="number"
+                step="15"
+                [value]="mount.rotation ?? 0"
+                (keydown.enter)="$any($event.target).blur()"
+                (blur)="updatePcbMount($index, { rotation: +$any($event.target).value })"
+              />
+            </div>
+          }
           <div class="input-group">
             <label>Height</label>
             <input
@@ -353,7 +415,15 @@
           }
         </div>
       }
-      <button type="button" class="add-btn" (click)="addPcbMount()">ADD NEW MOUNT</button>
+      <button type="button" class="add-btn" (click)="addPcbMount('single')">
+        ADD SINGLE MOUNT
+      </button>
+      <button type="button" class="add-btn" (click)="addPcbMount('pair')">
+        ADD 2-HOLE MOUNT SET
+      </button>
+      <button type="button" class="add-btn" (click)="addPcbMount('rectangle')">
+        ADD 4-HOLE MOUNT SET
+      </button>
     </div>
   </div>
 

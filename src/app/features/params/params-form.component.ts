@@ -1,6 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
-import type { Hole, InternalWall, PCBMount, Params, SnapFit } from '../../core/params';
+import type {
+  Hole,
+  InternalWall,
+  PCBMount,
+  Params,
+  PcbMountPattern,
+  SnapFit,
+} from '../../core/params';
 import { EnclosureStateService } from '../../core/state/enclosure-state.service';
 
 type Surface = 'top' | 'bottom' | 'left' | 'right' | 'front' | 'back';
@@ -78,7 +85,18 @@ export class ParamsFormComponent {
     });
   }
 
-  addPcbMount(): void {
+  readonly pcbMountPatterns: { value: PcbMountPattern; label: string }[] = [
+    { value: 'single', label: 'Single Mount' },
+    { value: 'pair', label: '2-Hole Pattern' },
+    { value: 'rectangle', label: '4-Hole Rectangle' },
+  ];
+
+  pcbMountPatternLabel(pattern: PcbMountPattern | undefined): string {
+    const value = pattern ?? 'single';
+    return this.pcbMountPatterns.find((item) => item.value === value)?.label ?? 'Single Mount';
+  }
+
+  addPcbMount(pattern: PcbMountPattern = 'single'): void {
     const current = this.params();
     const next: PCBMount = {
       surface: 'bottom',
@@ -87,8 +105,33 @@ export class ParamsFormComponent {
       height: 5,
       outerDiameter: 6,
       screwDiameter: 2,
+      ...this.pcbMountPatternDefaults(pattern),
     };
     this.state.patchParams({ pcbMounts: [...current.pcbMounts, next] });
+  }
+
+  setPcbMountPattern(index: number, pattern: PcbMountPattern): void {
+    const mount = this.params().pcbMounts[index];
+    if (!mount) {
+      return;
+    }
+    const defaults = this.pcbMountPatternDefaults(pattern);
+    this.updatePcbMount(index, {
+      pattern,
+      spacingX: mount.spacingX ?? defaults.spacingX,
+      spacingY: mount.spacingY ?? defaults.spacingY,
+      rotation: mount.rotation ?? defaults.rotation,
+    });
+  }
+
+  private pcbMountPatternDefaults(pattern: PcbMountPattern): Partial<PCBMount> {
+    if (pattern === 'pair') {
+      return { pattern, spacingX: 40, rotation: 0 };
+    }
+    if (pattern === 'rectangle') {
+      return { pattern, spacingX: 40, spacingY: 30, rotation: 0 };
+    }
+    return {};
   }
 
   removePcbMount(index: number): void {

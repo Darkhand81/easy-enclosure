@@ -73,6 +73,46 @@ export const pcbMount = (mountParams: PCBMount, params?: Partial<Params>): Geom3
   return translate([0, 0, -h / 2], revolved);
 };
 
+/**
+ * Expands a mount entry into the individual standoffs it describes. Pattern
+ * offsets are applied in the mount's own 2D (x, y) coordinate space, so the
+ * group stays locked together on any surface and moves as one with x/y.
+ */
+export const expandPcbMount = (mount: PCBMount): PCBMount[] => {
+  const pattern = mount.pattern ?? 'single';
+  if (pattern === 'single') {
+    return [mount];
+  }
+
+  const halfX = Math.abs(mount.spacingX ?? 0) / 2;
+  const halfY = Math.abs(mount.spacingY ?? 0) / 2;
+  const offsets: [number, number][] =
+    pattern === 'pair'
+      ? [
+          [-halfX, 0],
+          [halfX, 0],
+        ]
+      : [
+          [-halfX, -halfY],
+          [halfX, -halfY],
+          [halfX, halfY],
+          [-halfX, halfY],
+        ];
+
+  const angle = degToRad(mount.rotation ?? 0);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+
+  return offsets.map(([dx, dy]) => ({
+    ...mount,
+    pattern: 'single',
+    x: mount.x + dx * cos - dy * sin,
+    y: mount.y + dx * sin + dy * cos,
+  }));
+};
+
+const expandPcbMounts = (mounts: PCBMount[]): PCBMount[] => mounts.flatMap(expandPcbMount);
+
 const placeBaseMount = (mount: PCBMount, params: Params): Geom3 => {
   const { length, width, height, floor, wall, waterProof, insertThickness, insertClearance } =
     params;
@@ -134,7 +174,7 @@ const buildMountUnion = (mounts: Geom3[]): Geom3 | null => {
 };
 
 export const pcbMountsOnBase = (params: Params): Geom3 | null => {
-  const mounts = params.pcbMounts
+  const mounts = expandPcbMounts(params.pcbMounts)
     .filter((mount) => (mount.surface ?? 'bottom') !== 'top')
     .map((mount) => placeBaseMount(mount, params));
 
@@ -142,7 +182,7 @@ export const pcbMountsOnBase = (params: Params): Geom3 | null => {
 };
 
 export const pcbMountsOnLid = (params: Params): Geom3 | null => {
-  const mounts = params.pcbMounts
+  const mounts = expandPcbMounts(params.pcbMounts)
     .filter((mount) => (mount.surface ?? 'bottom') === 'top')
     .map((mount) => placeLidMount(mount, params));
 

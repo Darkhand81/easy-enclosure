@@ -13,6 +13,7 @@ EasyEnclosure is an open-source 3D modeling software tailored specifically for d
 - Export to STL (Mesh) and STEP (Solid CAD) Formats
 - Parametric Snap-Fit Clippable Lids (screwless assembly)
 - High-strength PCB standoffs with parametric root fillets/chamfers
+- PCB mount hole patterns (2-hole and 4-hole) placed from your board's hole spacing
 - Save and load parameter presets as JSON
 
 ## Export Formats
@@ -153,6 +154,16 @@ When enabling screw head recesses (**Counterbore** or **Countersunk**), the rece
 
 > **Tip**: Increasing the lid roof thickness by $1 - 1.5\text{ mm}$ uses very little filament (just a thin flat layer), while keeping the four vertical base corner posts compact to maximize usable internal space for your PCB.
 
+### PCB Mount Hole Patterns
+
+Instead of placing each standoff by hand, a PCB mount can be added as a locked hole pattern:
+
+- **Single Mount**: One standoff at X/Y.
+- **2-Hole Pattern**: Enter the centre-to-centre distance between the board's two holes.
+- **4-Hole Rectangle**: Enter the centre-to-centre hole spacing in X and Y (e.g. 40 × 30 mm).
+
+For patterns, X/Y positions the centre of the group, so the standoffs move together and always keep the board's hole spacing. An optional rotation turns the whole group about its centre.
+
 ### PCB Mount Standoff Reinforcement
 
 Standard cylindrical standoffs printed vertically along the Z-axis in FDM 3D prints are vulnerable to shearing off at the first layer where they meet the enclosure floor or lid due to stress concentration under screw insertion torque. EasyEnclosure provides parametric root reinforcement:
@@ -174,4 +185,4 @@ Root reinforcement can be configured globally in the PCB Mounts tab or overridde
 - Inner width = width - (wall thickness \* 2)
 - Inner length = length - (wall thickness \* 2)
 - Screws take up extra space in corners, keep this in mind when deciding length and width
-- PCB mount X and Y is derived from center of base
+- PCB mount X and Y is derived from center of base (for 2-hole and 4-hole patterns, it is the center of the hole group)
